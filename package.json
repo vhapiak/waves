@@ -1,0 +1,15 @@
+{
+  "name": "waves",
+  "version": "0.0.1",
+  "description": "Game about waves",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Viktor Hapiak",
+  "license": "ISC",
+  "dependencies": {
+    "pixi.js": "^5.2.4",
+    "requirejs": "^2.3.6"
+  }
+}
