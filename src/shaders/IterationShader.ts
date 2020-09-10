@@ -10,7 +10,7 @@ export const vertex = `
     varying vec2 vUvs;
 
     void main() {
-        gl_Position = vec4(aVertexPosition, 0.0, 1.0);
+        gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
         vUvs = aUvs;
     }
 `;
@@ -38,9 +38,9 @@ export const fragment = `
         vec4 current = texture2D(uSampler, vUvs);
 
         float acceleration = -0.25 * (current.r - top + current.r - bottom + current.r - left + current.r - right);
-        float velocity = current.g + acceleration;
-        float value = (current.r + velocity);
+        float velocity = current.g * current.b + acceleration;
+        float value = current.r + velocity;
 
-        gl_FragColor = vec4(value, velocity, 0.0, 1.0);
+        gl_FragColor = vec4(value, velocity, current.b, current.a);
     }
 `;

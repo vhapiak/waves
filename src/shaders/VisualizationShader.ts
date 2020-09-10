@@ -10,7 +10,7 @@ export const vertex = `
     varying vec2 vUvs;
 
     void main() {
-        gl_Position = vec4(aVertexPosition, 0.0, 1.0);
+        gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
         vUvs = aUvs;
     }
 `;
@@ -27,6 +27,7 @@ export const fragment = `
     void main() {
         vec4 color = texture2D(uSampler, vUvs);
         vec4 sensors = texture2D(uSensorsMask, vUvs);
+        // gl_FragColor = color;
         gl_FragColor = vec4(
             clamp(color.r * 20.0, 0.0, 1.0), 
             0.5 * sensors.b * (1.0 + uCheckResult), // b - sensors id 

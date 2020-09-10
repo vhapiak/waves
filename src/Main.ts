@@ -40,6 +40,27 @@ function drawDrop(app: PIXI.Application, texture: PIXI.RenderTexture) {
     app.renderer.render(circle, texture, false);
 }
 
+type Vec2 = {
+    x: number,
+    y: number
+}
+
+function drawRectangle(
+        app: PIXI.Application, 
+        texture: PIXI.RenderTexture, 
+        position: Vec2,
+        size: Vec2,
+        color: number) {
+
+    const graphics = new PIXI.Graphics();
+
+    graphics.beginFill(color, 1.0);
+    graphics.drawRect(position.x, position.y, size.x, size.y);
+    graphics.endFill();
+
+    app.renderer.render(graphics, texture, false);
+}
+
 
 function drawSensorMask(
         app: PIXI.Application, 
@@ -107,6 +128,12 @@ function main(): void {
 
     const firstBuffer = createBuffer(width, height, PIXI.FORMATS.RGBA, PIXI.TYPES.FLOAT);
     const secondBuffer = createBuffer(width, height, PIXI.FORMATS.RGBA, PIXI.TYPES.FLOAT);
+
+    // set slight gradient damping on the edges to avoid reflactions   
+    const offset = 32;
+    for (let i = 0; i <= offset; ++i) {
+        drawRectangle(app, firstBuffer, {x: i, y: i}, {x: width - 2 * i, y: height - 2 * i}, 0x0000FF - offset + i);
+    }
     drawDrop(app, firstBuffer);
 
     const sensor = {
@@ -125,10 +152,10 @@ function main(): void {
 
     const quadGeometry = new PIXI.Geometry()
         .addAttribute('aVertexPosition', 
-            [-1, 1, 
-             1, 1, 
-             1, -1,
-             -1, -1], 
+            [0, 0, 
+             width, 0, 
+             width, height,
+             0, height], 
             2) 
         .addAttribute('aUvs', 
             [0, 0, 

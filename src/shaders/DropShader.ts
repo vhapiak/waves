@@ -20,6 +20,6 @@ export const fragment = `
     varying float vRed;
 
     void main() {
-        gl_FragColor = vec4(vRed, 0.0, 0.0, 1.0);
+        gl_FragColor = vec4(vRed, 0.0, 1.0, 1.0);
     }
 `;
