@@ -1,6 +1,7 @@
 /// <reference types="pixi.js" />
 
 import * as DropShader from './shaders/DropShader'
+import * as SensorMaskShader from './shaders/SensorMaskShader'
 import * as IterationShader from './shaders/IterationShader'
 import * as VisualizationShader from './shaders/VisualizationShader'
 
@@ -38,6 +39,49 @@ function drawDrop(app: PIXI.Application, texture: PIXI.RenderTexture) {
     app.renderer.render(circle, texture);
 }
 
+
+function drawSensorMask(
+        app: PIXI.Application, 
+        texture: PIXI.RenderTexture, 
+        x: number, 
+        y: number, 
+        minVal: number, 
+        maxVal: number, 
+        id: number) {
+            
+    const radius = 15.0;
+    const vertices = [
+        0, 0,
+        radius * Math.cos( 0 * Math.PI / 4), radius * Math.sin( 0 * Math.PI / 4),
+        radius * Math.cos( 1 * Math.PI / 4), radius * Math.sin( 1 * Math.PI / 4),
+        radius * Math.cos( 2 * Math.PI / 4), radius * Math.sin( 2 * Math.PI / 4),
+        radius * Math.cos( 3 * Math.PI / 4), radius * Math.sin( 3 * Math.PI / 4),
+        radius * Math.cos( 4 * Math.PI / 4), radius * Math.sin( 4 * Math.PI / 4),
+        radius * Math.cos( 5 * Math.PI / 4), radius * Math.sin( 5 * Math.PI / 4),
+        radius * Math.cos( 6 * Math.PI / 4), radius * Math.sin( 6 * Math.PI / 4),
+        radius * Math.cos( 7 * Math.PI / 4), radius * Math.sin( 7 * Math.PI / 4),
+        radius * Math.cos( 8 * Math.PI / 4), radius * Math.sin( 8 * Math.PI / 4)
+    ];
+
+    const geometry = new PIXI.Geometry()
+        .addAttribute('aVertexPosition', vertices, 2);
+    
+    const program = PIXI.Program.from(SensorMaskShader.vertex, SensorMaskShader.fragment);
+
+    const material = new PIXI.MeshMaterial(PIXI.Texture.EMPTY, {
+        program: program,
+        uniforms: {
+            minVal: minVal,
+            maxVal: maxVal,
+            id: id
+        }
+    });
+
+    const circle = new PIXI.Mesh(geometry, material, null, PIXI.DRAW_MODES.TRIANGLE_FAN);
+    circle.position.set(x, y);
+    app.renderer.render(circle, texture);
+}
+
 function createBuffer(width: number, height: number, format: PIXI.FORMATS, type: PIXI.TYPES): PIXI.RenderTexture {
     const tex = new PIXI.BaseRenderTexture({
         width: width,
@@ -58,8 +102,10 @@ function main(): void {
 
     const firstBuffer = createBuffer(width, height, PIXI.FORMATS.RGBA, PIXI.TYPES.FLOAT);
     const secondBuffer = createBuffer(width, height, PIXI.FORMATS.RGBA, PIXI.TYPES.FLOAT);
-
     drawDrop(app, firstBuffer);
+
+    const sensorsMaskBuffer = createBuffer(width, height, PIXI.FORMATS.RGBA, PIXI.TYPES.FLOAT);
+    drawSensorMask(app, sensorsMaskBuffer, 250, 250, 0.0, 1.0, 1);
 
     // let extract = new PIXI.Extract(app.renderer);
     // let data = extract.pixels(firstBuffer);
@@ -100,7 +146,10 @@ function main(): void {
     let offscreenBuffer = secondBuffer;
 
     const onscreenMaterial = new PIXI.MeshMaterial(shownBuffer, {
-        program: onscreenProgram
+        program: onscreenProgram,
+        uniforms: {
+            uSensorsMask: sensorsMaskBuffer
+        }
     });
 
     const onscreenQuad = new PIXI.Mesh(quadGeometry, onscreenMaterial);
