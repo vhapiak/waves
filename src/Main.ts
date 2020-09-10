@@ -9,8 +9,11 @@ import * as VisualizationShader from './shaders/VisualizationShader'
 const width = 600;
 const height = 600;
 
-function drawDrop(app: PIXI.Application, texture: PIXI.RenderTexture) {
-    const radius = 6.0;
+function drawDrop(
+        app: PIXI.Application, 
+        texture: PIXI.RenderTexture,
+        position: Vec2,
+        radius: number) {
     const vertices = [
         0, 0,
         radius * Math.cos( 0 * Math.PI / 4), radius * Math.sin( 0 * Math.PI / 4),
@@ -36,7 +39,7 @@ function drawDrop(app: PIXI.Application, texture: PIXI.RenderTexture) {
     });
 
     const circle = new PIXI.Mesh(geometry, material, null, PIXI.DRAW_MODES.TRIANGLE_FAN);
-    circle.position.set(width / 2, height / 2);
+    circle.position.set(position.x, position.y);
     app.renderer.render(circle, texture, false);
 }
 
@@ -134,7 +137,6 @@ function main(): void {
     for (let i = 0; i <= offset; ++i) {
         drawRectangle(app, firstBuffer, {x: i, y: i}, {x: width - 2 * i, y: height - 2 * i}, 0x0000FF - offset + i);
     }
-    drawDrop(app, firstBuffer);
 
     const sensor = {
         x: 250,
@@ -226,6 +228,13 @@ function main(): void {
 
         onscreenMaterial.texture = shownBuffer;
     });
+
+    app.stage.interactive = true;
+    app.stage.on('pointerup', pointerUp);
+
+    function pointerUp(event: PIXI.InteractionEvent) {
+        drawDrop(app, shownBuffer, event.data.global, 6.0);
+    }
 }
 
 main();

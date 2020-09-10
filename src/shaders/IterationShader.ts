@@ -38,9 +38,10 @@ export const fragment = `
         vec4 current = texture2D(uSampler, vUvs);
 
         float acceleration = -0.25 * (current.r - top + current.r - bottom + current.r - left + current.r - right);
-        float velocity = current.g * current.b + acceleration;
+        float damping = current.b;
+        float velocity = current.g * damping + acceleration;
         float value = current.r + velocity;
 
-        gl_FragColor = vec4(value, velocity, current.b, current.a);
+        gl_FragColor = vec4(value, velocity, damping, current.a);
     }
 `;
