@@ -1,9 +1,13 @@
 /// <reference types="pixi.js" />
 
+import * as DropShader from './shaders/DropShader'
+import * as IterationShader from './shaders/IterationShader'
+import * as VisualizationShader from './shaders/VisualizationShader'
+
 const width = 600;
 const height = 600;
 
-function drawCircle(app: PIXI.Application, texture: PIXI.RenderTexture) {
+function drawDrop(app: PIXI.Application, texture: PIXI.RenderTexture) {
     const radius = 6.0;
     const vertices = [
         0, 0,
@@ -23,29 +27,7 @@ function drawCircle(app: PIXI.Application, texture: PIXI.RenderTexture) {
         .addAttribute('aVertexPosition', vertices, 2)
         .addAttribute('aVertexColorR', colors, 1);
     
-    const program = PIXI.Program.from(`
-        precision mediump float;
-        attribute vec2 aVertexPosition;
-        attribute float aVertexColorR;
-
-        uniform mat3 translationMatrix;
-        uniform mat3 projectionMatrix;
-
-        varying float vRed;
-
-        void main() {
-            gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
-            vRed = aVertexColorR;
-        }`,
-
-        `precision mediump float;
-
-        varying float vRed;
-
-        void main() {
-            gl_FragColor = vec4(vRed, 0.0, 0.0, 1.0);
-        }`
-    );
+    const program = PIXI.Program.from(DropShader.vertex,DropShader.fragment);
 
     const material = new PIXI.MeshMaterial(PIXI.Texture.EMPTY, {
         program: program
@@ -56,35 +38,28 @@ function drawCircle(app: PIXI.Application, texture: PIXI.RenderTexture) {
     app.renderer.render(circle, texture);
 }
 
+function createBuffer(width: number, height: number, format: PIXI.FORMATS, type: PIXI.TYPES): PIXI.RenderTexture {
+    const tex = new PIXI.BaseRenderTexture({
+        width: width,
+        height: height,
+        scaleMode: PIXI.SCALE_MODES.NEAREST
+    });
+    tex.mipmap = PIXI.MIPMAP_MODES.OFF;
+    tex.wrapMode = PIXI.WRAP_MODES.CLAMP;
+    tex.format = format;
+    tex.type = type;
+    return new PIXI.RenderTexture(tex);
+}
+
 function main(): void {
 
     const app = new PIXI.Application({ width: width, height: height, transparent: true });
     document.body.appendChild(app.view);
 
-    const tex1 = new PIXI.BaseRenderTexture({
-        width: width,
-        height: height,
-        scaleMode: PIXI.SCALE_MODES.NEAREST
-    });
-    tex1.mipmap = PIXI.MIPMAP_MODES.OFF;
-    tex1.wrapMode = PIXI.WRAP_MODES.CLAMP;
-    tex1.format = PIXI.FORMATS.RGBA;
-    tex1.type = PIXI.TYPES.FLOAT;
-    const firstBuffer = new PIXI.RenderTexture(tex1);
+    const firstBuffer = createBuffer(width, height, PIXI.FORMATS.RGBA, PIXI.TYPES.FLOAT);
+    const secondBuffer = createBuffer(width, height, PIXI.FORMATS.RGBA, PIXI.TYPES.FLOAT);
 
-    const tex2 = new PIXI.BaseRenderTexture({
-        width: width,
-        height: height,
-        scaleMode: PIXI.SCALE_MODES.NEAREST
-    });
-    tex2.mipmap = PIXI.MIPMAP_MODES.OFF;
-    tex2.wrapMode = PIXI.WRAP_MODES.CLAMP;
-    tex2.format = PIXI.FORMATS.RGBA;
-    tex2.type = PIXI.TYPES.FLOAT;
-    tex2.update();
-    const secondBuffer = new PIXI.RenderTexture(tex2);
-
-    drawCircle(app, firstBuffer);
+    drawDrop(app, firstBuffer);
 
     // let extract = new PIXI.Extract(app.renderer);
     // let data = extract.pixels(firstBuffer);
@@ -105,52 +80,7 @@ function main(): void {
             2)
         .addIndex([0, 1, 2, 0, 2, 3]);
 
-    const iterationProgram = PIXI.Program.from(`
-        precision mediump float;
-        attribute vec2 aVertexPosition;
-        attribute vec2 aUvs;
-
-        uniform mat3 translationMatrix;
-        uniform mat3 projectionMatrix;
-
-        varying vec2 vUvs;
-
-        void main() {
-            gl_Position = vec4(aVertexPosition, 0.0, 1.0);
-            vUvs = aUvs;
-        }`,
-
-        `precision mediump float;
-
-        varying vec2 vUvs;
-
-        uniform sampler2D uSampler;
-        uniform vec2 uPixelStep;
-
-        highp float getN(vec2 offset) {
-            highp vec2 uv = vUvs + offset;
-            highp vec4 col = texture2D(uSampler, uv);
-            return col.r;
-        }
-
-        void main() {
-            highp float top = getN(vec2(0.0, -uPixelStep.y));
-            highp float bottom = getN(vec2(0.0, uPixelStep.y));
-            highp float left = getN(vec2(-uPixelStep.x, 0.0));
-            highp float right = getN(vec2(uPixelStep.x, 0.0));
-            highp vec4 current = texture2D(uSampler, vUvs);
-
-            highp float acceleration = -0.25 * (current.r - top + current.r - bottom + current.r - left + current.r - right);
-            highp float velocity = current.g + acceleration;
-            highp float value = current.r + velocity;
-
-            // highp float mid = .25 * (top + bottom + left + right);
-            // highp float velocity = 1.5 * (mid - current.r) + current.g * 1.0;
-            // highp float value = current.r + velocity;
-
-            gl_FragColor = vec4(value, velocity, 0.0, 1.0);
-        }`
-    );
+    const iterationProgram = PIXI.Program.from(IterationShader.vertex, IterationShader.fragment);
 
     const iterationMaterial = new PIXI.MeshMaterial(firstBuffer, {
         program: iterationProgram,
@@ -163,33 +93,8 @@ function main(): void {
     });
 
     const iterationQuad = new PIXI.Mesh(quadGeometry, iterationMaterial);
-    // app.renderer.render(iterationQuad, secondBuffer);
 
-    const onscreenProgram = PIXI.Program.from(`
-        precision mediump float;
-        attribute vec2 aVertexPosition;
-        attribute vec2 aUvs;
-
-        uniform mat3 translationMatrix;
-        uniform mat3 projectionMatrix;
-
-        varying vec2 vUvs;
-
-        void main() {
-            gl_Position = vec4(aVertexPosition, 0.0, 1.0);
-            vUvs = aUvs;
-        }`,
-
-        `precision mediump float;
-
-        varying vec2 vUvs;
-        uniform sampler2D uSampler;
-
-        void main() {
-            vec4 color = texture2D(uSampler, vUvs);
-            gl_FragColor = vec4(clamp(color.r * 20.0, 0.0, 1.0), 0.0, clamp(-color.r * 20.0, 0.0, 1.0), 1.0);
-        }`
-    );
+    const onscreenProgram = PIXI.Program.from(VisualizationShader.vertex, VisualizationShader.fragment);
 
     let shownBuffer = firstBuffer;
     let offscreenBuffer = secondBuffer;
