@@ -2,12 +2,16 @@
 /// <reference types="stats" />
 
 import * as DropShader from './shaders/DropShader'
-import * as SensorMaskShader from './shaders/SensorMaskShader'
 import * as IterationShader from './shaders/IterationShader'
 import * as VisualizationShader from './shaders/VisualizationShader'
 
 const width = 600;
 const height = 600;
+
+type Vec2 = {
+    x: number,
+    y: number
+}
 
 function drawDrop(
         app: PIXI.Application, 
@@ -43,11 +47,6 @@ function drawDrop(
     app.renderer.render(circle, texture, false);
 }
 
-type Vec2 = {
-    x: number,
-    y: number
-}
-
 function drawRectangle(
         app: PIXI.Application, 
         texture: PIXI.RenderTexture, 
@@ -64,49 +63,6 @@ function drawRectangle(
     app.renderer.render(graphics, texture, false);
 }
 
-
-function drawSensorMask(
-        app: PIXI.Application, 
-        texture: PIXI.RenderTexture, 
-        x: number, 
-        y: number, 
-        radius: number,
-        minValue: number, 
-        maxValue: number, 
-        id: number) {
-            
-    const vertices = [
-        0, 0,
-        radius * Math.cos( 0 * Math.PI / 4), radius * Math.sin( 0 * Math.PI / 4),
-        radius * Math.cos( 1 * Math.PI / 4), radius * Math.sin( 1 * Math.PI / 4),
-        radius * Math.cos( 2 * Math.PI / 4), radius * Math.sin( 2 * Math.PI / 4),
-        radius * Math.cos( 3 * Math.PI / 4), radius * Math.sin( 3 * Math.PI / 4),
-        radius * Math.cos( 4 * Math.PI / 4), radius * Math.sin( 4 * Math.PI / 4),
-        radius * Math.cos( 5 * Math.PI / 4), radius * Math.sin( 5 * Math.PI / 4),
-        radius * Math.cos( 6 * Math.PI / 4), radius * Math.sin( 6 * Math.PI / 4),
-        radius * Math.cos( 7 * Math.PI / 4), radius * Math.sin( 7 * Math.PI / 4),
-        radius * Math.cos( 8 * Math.PI / 4), radius * Math.sin( 8 * Math.PI / 4)
-    ];
-
-    const geometry = new PIXI.Geometry()
-        .addAttribute('aVertexPosition', vertices, 2);
-    
-    const program = PIXI.Program.from(SensorMaskShader.vertex, SensorMaskShader.fragment);
-
-    const material = new PIXI.MeshMaterial(PIXI.Texture.EMPTY, {
-        program: program,
-        uniforms: {
-            minValue: minValue,
-            maxValue: maxValue,
-            id: id
-        }
-    });
-
-    const circle = new PIXI.Mesh(geometry, material, null, PIXI.DRAW_MODES.TRIANGLE_FAN);
-    circle.position.set(x, y);
-    app.renderer.render(circle, texture, false);
-}
-
 function createBuffer(width: number, height: number, format: PIXI.FORMATS, type: PIXI.TYPES): PIXI.RenderTexture {
     const tex = new PIXI.BaseRenderTexture({
         width: width,
@@ -118,6 +74,13 @@ function createBuffer(width: number, height: number, format: PIXI.FORMATS, type:
     tex.format = format;
     tex.type = type;
     return new PIXI.RenderTexture(tex);
+}
+
+function drawSensor(graphics: PIXI.Graphics, radius: number, activated: boolean) {
+    graphics.clear();
+
+    graphics.lineStyle(5, 0xffffff, activated ? 0.9 : 0.4);
+    graphics.drawCircle(0, 0, radius);
 }
 
 function main(): void {
@@ -143,14 +106,7 @@ function main(): void {
         y: 250,
         r: 30
     }
-    const sensorsMaskBuffer = createBuffer(width, height, PIXI.FORMATS.RGBA, PIXI.TYPES.FLOAT);
-    drawSensorMask(app, sensorsMaskBuffer, sensor.x, sensor.y, sensor.r, 0.02, 1.0, 1);
-
-    const sensorsCheckBuffer = createBuffer(1, 1, PIXI.FORMATS.RGBA, PIXI.TYPES.UNSIGNED_BYTE);
-
-    // let extract = new PIXI.Extract(app.renderer);
-    // let data = extract.pixels(firstBuffer);
-    // console.log(data[4 * width * (height / 2) + 4 * width / 2] , data[4 * width * height / 2 + 4 * width / 2 + 1]);
+    // drawSensorMask(app, sensorsMaskBuffer, sensor.x, sensor.y, sensor.r, 0.02, 1.0, 1);
 
     const quadGeometry = new PIXI.Geometry()
         .addAttribute('aVertexPosition', 
@@ -185,15 +141,16 @@ function main(): void {
     let offscreenBuffer = secondBuffer;
 
     const onscreenMaterial = new PIXI.MeshMaterial(shownBuffer, {
-        program: onscreenProgram,
-        uniforms: {
-            uSensorsMask: sensorsMaskBuffer,
-            uCheckResult: 0.0
-        }
+        program: onscreenProgram
     });
 
     const onscreenQuad = new PIXI.Mesh(quadGeometry, onscreenMaterial);
     app.stage.addChild(onscreenQuad);
+
+    const sensorGraphics = new PIXI.Graphics();
+    drawSensor(sensorGraphics, sensor.r, false);
+    sensorGraphics.position.set(sensor.x, sensor.y);
+    app.stage.addChild(sensorGraphics);
 
     var webglPixels = new Float32Array(4 * 4 * sensor.r * sensor.r);
     app.ticker.add(function() {
@@ -211,18 +168,23 @@ function main(): void {
         const gl = app.renderer.gl; 
         gl.readPixels(sensor.x - sensor.r, sensor.y - sensor.r, 2 * sensor.r, 2 * sensor.r, gl.RGBA, gl.FLOAT, webglPixels);
         
-        onscreenMaterial.uniforms.uCheckResult = (function(): number {
+        const activated = (function(): boolean {
             const width = 2 * sensor.r;
             for (let y = 0; y < width; ++y) {
                 for (let x = 0; x < width; ++x) {
+                    const dx = sensor.r - x; 
+                    const dy = sensor.r - y; 
+                    const inCircle = (dx * dx + dy * dy <= sensor.r * sensor.r);
+
                     const index = (y * width + x) * 4;
-                    if (webglPixels[index] > 0.05) {
-                        return 1.0;
+                    if (inCircle && webglPixels[index] > 0.01) {
+                        return true;
                     }
                 }
             }
-            return 0.0;
+            return false;
         })();
+        drawSensor(sensorGraphics, sensor.r, activated);
 
         stats.end();
 
