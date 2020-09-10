@@ -4,6 +4,7 @@ import * as DropShader from './shaders/DropShader'
 import * as SensorMaskShader from './shaders/SensorMaskShader'
 import * as IterationShader from './shaders/IterationShader'
 import * as VisualizationShader from './shaders/VisualizationShader'
+import * as SensorsCheckShader from './shaders/SensorsCheckShader'
 
 const width = 600;
 const height = 600;
@@ -36,7 +37,7 @@ function drawDrop(app: PIXI.Application, texture: PIXI.RenderTexture) {
 
     const circle = new PIXI.Mesh(geometry, material, null, PIXI.DRAW_MODES.TRIANGLE_FAN);
     circle.position.set(width / 2, height / 2);
-    app.renderer.render(circle, texture);
+    app.renderer.render(circle, texture, false);
 }
 
 
@@ -45,8 +46,8 @@ function drawSensorMask(
         texture: PIXI.RenderTexture, 
         x: number, 
         y: number, 
-        minVal: number, 
-        maxVal: number, 
+        minValue: number, 
+        maxValue: number, 
         id: number) {
             
     const radius = 15.0;
@@ -71,15 +72,15 @@ function drawSensorMask(
     const material = new PIXI.MeshMaterial(PIXI.Texture.EMPTY, {
         program: program,
         uniforms: {
-            minVal: minVal,
-            maxVal: maxVal,
+            minValue: minValue,
+            maxValue: maxValue,
             id: id
         }
     });
 
     const circle = new PIXI.Mesh(geometry, material, null, PIXI.DRAW_MODES.TRIANGLE_FAN);
     circle.position.set(x, y);
-    app.renderer.render(circle, texture);
+    app.renderer.render(circle, texture, false);
 }
 
 function createBuffer(width: number, height: number, format: PIXI.FORMATS, type: PIXI.TYPES): PIXI.RenderTexture {
@@ -105,7 +106,10 @@ function main(): void {
     drawDrop(app, firstBuffer);
 
     const sensorsMaskBuffer = createBuffer(width, height, PIXI.FORMATS.RGBA, PIXI.TYPES.FLOAT);
-    drawSensorMask(app, sensorsMaskBuffer, 250, 250, 0.0, 1.0, 1);
+    drawSensorMask(app, sensorsMaskBuffer, 250, 250, 0.02, 1.0, 1);
+    drawSensorMask(app, sensorsMaskBuffer, 0, 0, 0.01, 1.0, 1);
+
+    const sensorsCheckBuffer = createBuffer(1, 1, PIXI.FORMATS.RGBA, PIXI.TYPES.UNSIGNED_BYTE);
 
     // let extract = new PIXI.Extract(app.renderer);
     // let data = extract.pixels(firstBuffer);
@@ -127,18 +131,29 @@ function main(): void {
         .addIndex([0, 1, 2, 0, 2, 3]);
 
     const iterationProgram = PIXI.Program.from(IterationShader.vertex, IterationShader.fragment);
-
     const iterationMaterial = new PIXI.MeshMaterial(firstBuffer, {
         program: iterationProgram,
         uniforms: {
-            "uPixelStep": {
+            uPixelStep: {
                 x: 1 / width,
                 y: 1 / height
             }
         }
     });
-
     const iterationQuad = new PIXI.Mesh(quadGeometry, iterationMaterial);
+
+    const sensorsCheckProgram = PIXI.Program.from(SensorsCheckShader.vertex, SensorsCheckShader.fragment);
+    const sensorsCheckMaterial = new PIXI.MeshMaterial(sensorsMaskBuffer, {
+        program: sensorsCheckProgram,
+        uniforms: {
+            uPixelStep: {
+                x: 1 / width,
+                y: 1 / height
+            },
+            uState: firstBuffer
+        }
+    });
+    const sensorsCheckQuad = new PIXI.Mesh(quadGeometry, sensorsCheckMaterial);
 
     const onscreenProgram = PIXI.Program.from(VisualizationShader.vertex, VisualizationShader.fragment);
 
@@ -148,7 +163,8 @@ function main(): void {
     const onscreenMaterial = new PIXI.MeshMaterial(shownBuffer, {
         program: onscreenProgram,
         uniforms: {
-            uSensorsMask: sensorsMaskBuffer
+            uSensorsMask: sensorsMaskBuffer,
+            uCheckResult: sensorsCheckBuffer
         }
     });
 
@@ -165,11 +181,15 @@ function main(): void {
             iterationMaterial.texture = offscreenBuffer;
             app.renderer.render(iterationQuad, shownBuffer, true);
         }
+
+        sensorsCheckMaterial.uniforms.uState = shownBuffer;
+        app.renderer.render(sensorsCheckQuad, sensorsCheckBuffer, true);
+
         console.timeEnd('iteration');
 
-        // let extract = new PIXI.Extract(app.renderer);
-        // let data = extract.pixels(shownBuffer);
-        // console.log(data[4 * width * (height / 2) + 4 * width / 2] , data[4 * width * height / 2 + 4 * width / 2 + 1]);
+        let extract = new PIXI.Extract(app.renderer);
+        let data = extract.pixels(sensorsCheckBuffer);
+        console.log(data);
 
         onscreenMaterial.texture = shownBuffer;
 
