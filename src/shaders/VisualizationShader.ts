@@ -22,15 +22,14 @@ export const fragment = `
     
     uniform sampler2D uSampler;
     uniform sampler2D uSensorsMask;
-    uniform sampler2D uCheckResult;
+    uniform float uCheckResult;
 
     void main() {
         vec4 color = texture2D(uSampler, vUvs);
         vec4 sensors = texture2D(uSensorsMask, vUvs);
-        vec4 mask = texture2D(uCheckResult, vec2(0.0, 0.0));
         gl_FragColor = vec4(
             clamp(color.r * 20.0, 0.0, 1.0), 
-            0.5 * sensors.b * (1.0 + mask.r), // b - sensors id 
+            0.5 * sensors.b * (1.0 + uCheckResult), // b - sensors id 
             clamp(-color.r * 20.0, 0.0, 1.0), 
             1.0);
     }

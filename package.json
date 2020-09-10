@@ -9,7 +9,9 @@
   "author": "Viktor Hapiak",
   "license": "ISC",
   "dependencies": {
+    "@types/stats": "^0.16.30",
     "pixi.js": "^5.2.4",
-    "requirejs": "^2.3.6"
+    "requirejs": "^2.3.6",
+    "stats.js": "^0.17.0"
   }
 }

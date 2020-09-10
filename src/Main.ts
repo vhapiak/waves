@@ -1,10 +1,10 @@
 /// <reference types="pixi.js" />
+/// <reference types="stats" />
 
 import * as DropShader from './shaders/DropShader'
 import * as SensorMaskShader from './shaders/SensorMaskShader'
 import * as IterationShader from './shaders/IterationShader'
 import * as VisualizationShader from './shaders/VisualizationShader'
-import * as SensorsCheckShader from './shaders/SensorsCheckShader'
 
 const width = 600;
 const height = 600;
@@ -46,11 +46,11 @@ function drawSensorMask(
         texture: PIXI.RenderTexture, 
         x: number, 
         y: number, 
+        radius: number,
         minValue: number, 
         maxValue: number, 
         id: number) {
             
-    const radius = 15.0;
     const vertices = [
         0, 0,
         radius * Math.cos( 0 * Math.PI / 4), radius * Math.sin( 0 * Math.PI / 4),
@@ -98,6 +98,10 @@ function createBuffer(width: number, height: number, format: PIXI.FORMATS, type:
 
 function main(): void {
 
+    const stats = new Stats();
+    stats.showPanel(1); // ms
+    document.body.appendChild(stats.dom);
+
     const app = new PIXI.Application({ width: width, height: height, transparent: true });
     document.body.appendChild(app.view);
 
@@ -105,9 +109,13 @@ function main(): void {
     const secondBuffer = createBuffer(width, height, PIXI.FORMATS.RGBA, PIXI.TYPES.FLOAT);
     drawDrop(app, firstBuffer);
 
+    const sensor = {
+        x: 250,
+        y: 250,
+        r: 30
+    }
     const sensorsMaskBuffer = createBuffer(width, height, PIXI.FORMATS.RGBA, PIXI.TYPES.FLOAT);
-    drawSensorMask(app, sensorsMaskBuffer, 250, 250, 0.02, 1.0, 1);
-    drawSensorMask(app, sensorsMaskBuffer, 0, 0, 0.01, 1.0, 1);
+    drawSensorMask(app, sensorsMaskBuffer, sensor.x, sensor.y, sensor.r, 0.02, 1.0, 1);
 
     const sensorsCheckBuffer = createBuffer(1, 1, PIXI.FORMATS.RGBA, PIXI.TYPES.UNSIGNED_BYTE);
 
@@ -142,19 +150,6 @@ function main(): void {
     });
     const iterationQuad = new PIXI.Mesh(quadGeometry, iterationMaterial);
 
-    const sensorsCheckProgram = PIXI.Program.from(SensorsCheckShader.vertex, SensorsCheckShader.fragment);
-    const sensorsCheckMaterial = new PIXI.MeshMaterial(sensorsMaskBuffer, {
-        program: sensorsCheckProgram,
-        uniforms: {
-            uPixelStep: {
-                x: 1 / width,
-                y: 1 / height
-            },
-            uState: firstBuffer
-        }
-    });
-    const sensorsCheckQuad = new PIXI.Mesh(quadGeometry, sensorsCheckMaterial);
-
     const onscreenProgram = PIXI.Program.from(VisualizationShader.vertex, VisualizationShader.fragment);
 
     let shownBuffer = firstBuffer;
@@ -164,16 +159,17 @@ function main(): void {
         program: onscreenProgram,
         uniforms: {
             uSensorsMask: sensorsMaskBuffer,
-            uCheckResult: sensorsCheckBuffer
+            uCheckResult: 0.0
         }
     });
 
     const onscreenQuad = new PIXI.Mesh(quadGeometry, onscreenMaterial);
     app.stage.addChild(onscreenQuad);
 
-    app.view.onclick = function() {
-        console.time('iteration');
-        for (let i = 0; i < 10; ++i) {
+    var webglPixels = new Float32Array(4 * 4 * sensor.r * sensor.r);
+    app.ticker.add(function() {
+        stats.begin();
+        for (let i = 0; i < 1; ++i) {
             const tmp = offscreenBuffer;
             offscreenBuffer = shownBuffer;
             shownBuffer = tmp;
@@ -182,18 +178,27 @@ function main(): void {
             app.renderer.render(iterationQuad, shownBuffer, true);
         }
 
-        sensorsCheckMaterial.uniforms.uState = shownBuffer;
-        app.renderer.render(sensorsCheckQuad, sensorsCheckBuffer, true);
+        app.renderer.renderTexture.bind(shownBuffer);
+        const gl = app.renderer.gl; 
+        gl.readPixels(sensor.x - sensor.r, sensor.y - sensor.r, 2 * sensor.r, 2 * sensor.r, gl.RGBA, gl.FLOAT, webglPixels);
+        
+        onscreenMaterial.uniforms.uCheckResult = (function(): number {
+            const width = 2 * sensor.r;
+            for (let y = 0; y < width; ++y) {
+                for (let x = 0; x < width; ++x) {
+                    const index = (y * width + x) * 4;
+                    if (webglPixels[index] > 0.05) {
+                        return 1.0;
+                    }
+                }
+            }
+            return 0.0;
+        })();
 
-        console.timeEnd('iteration');
-
-        let extract = new PIXI.Extract(app.renderer);
-        let data = extract.pixels(sensorsCheckBuffer);
-        console.log(data);
+        stats.end();
 
         onscreenMaterial.texture = shownBuffer;
-
-    }
+    });
 }
 
 main();
