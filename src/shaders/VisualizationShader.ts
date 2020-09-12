@@ -22,13 +22,17 @@ export const fragment = `
     
     uniform sampler2D uSampler;
 
+    float magnify(float x) {
+        return clamp(x * 20.0, 0.0, 1.0);
+    }
+
     void main() {
         vec4 color = texture2D(uSampler, vUvs);
         // gl_FragColor = color;
         gl_FragColor = vec4(
-            clamp(color.r * 20.0, 0.0, 1.0), 
+            magnify(color.r), 
             0.0,
-            clamp(-color.r * 20.0, 0.0, 1.0), 
+            magnify(-color.r), 
             1.0);
     }
 `;

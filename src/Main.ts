@@ -170,6 +170,7 @@ function main(): void {
         
         const activated = (function(): boolean {
             const width = 2 * sensor.r;
+            let max = -1.0;
             for (let y = 0; y < width; ++y) {
                 for (let x = 0; x < width; ++x) {
                     const dx = sensor.r - x; 
@@ -177,12 +178,13 @@ function main(): void {
                     const inCircle = (dx * dx + dy * dy <= sensor.r * sensor.r);
 
                     const index = (y * width + x) * 4;
-                    if (inCircle && webglPixels[index] > 0.01) {
-                        return true;
+                    if (inCircle && webglPixels[index] > max) {
+                        max = webglPixels[index];
                     }
                 }
             }
-            return false;
+            console.log(max);
+            return max > 0.01;
         })();
         drawSensor(sensorGraphics, sensor.r, activated);
 
