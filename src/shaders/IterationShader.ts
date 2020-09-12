@@ -26,7 +26,7 @@ export const fragment = `
     float getN(vec2 offset) {
         vec2 uv = vUvs + offset;
         vec4 col = texture2D(uSampler, uv);
-        return col.r;
+        return col.r * col.a;
     }
 
     void main() {
@@ -39,9 +39,10 @@ export const fragment = `
 
         float acceleration = -0.25 * (current.r - top + current.r - bottom + current.r - left + current.r - right);
         float damping = current.b;
-        float velocity = current.g * damping + acceleration;
+        float obstacle = current.a;
+        float velocity = current.g * damping + acceleration * obstacle;
         float value = current.r + velocity;
 
-        gl_FragColor = vec4(value, velocity, damping, current.a);
+        gl_FragColor = vec4(value, velocity, damping, obstacle);
     }
 `;

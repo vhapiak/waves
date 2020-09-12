@@ -31,7 +31,7 @@ export const fragment = `
         // gl_FragColor = color;
         gl_FragColor = vec4(
             magnify(color.r), 
-            0.0,
+            1.0 - color.a,
             magnify(-color.r), 
             1.0);
     }

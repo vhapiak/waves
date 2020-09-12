@@ -2,6 +2,7 @@
 /// <reference types="stats" />
 
 import * as DropShader from './shaders/DropShader'
+import * as DrawShader from './shaders/DrawShader'
 import * as IterationShader from './shaders/IterationShader'
 import * as VisualizationShader from './shaders/VisualizationShader'
 
@@ -11,6 +12,13 @@ const height = 600;
 type Vec2 = {
     x: number,
     y: number
+}
+
+type Color = {
+    r: number,
+    g: number,
+    b: number,
+    a: number
 }
 
 function drawDrop(
@@ -44,7 +52,11 @@ function drawDrop(
 
     const circle = new PIXI.Mesh(geometry, material, null, PIXI.DRAW_MODES.TRIANGLE_FAN);
     circle.position.set(position.x, position.y);
+
+    // need to set only amplitude and velocity
+    app.renderer.gl.colorMask(true, true, false, false);
     app.renderer.render(circle, texture, false);
+    app.renderer.gl.colorMask(true, true, true, true);
 }
 
 function drawRectangle(
@@ -52,15 +64,35 @@ function drawRectangle(
         texture: PIXI.RenderTexture, 
         position: Vec2,
         size: Vec2,
-        color: number) {
+        color: Color) {
 
-    const graphics = new PIXI.Graphics();
+    const geometry = new PIXI.Geometry()
+    .addAttribute('aVertexPosition', 
+        [position.x, position.y, 
+         position.x + size.x, position.y, 
+         position.x + size.x, position.y + size.y,
+         position.x, position.y + size.y], 
+        2)
+    .addIndex([0, 1, 2, 0, 2, 3]);
+    
+    const program = PIXI.Program.from(DrawShader.vertex, DrawShader.fragment);
 
-    graphics.beginFill(color, 1.0);
-    graphics.drawRect(position.x, position.y, size.x, size.y);
-    graphics.endFill();
-
-    app.renderer.render(graphics, texture, false);
+    const material = new PIXI.MeshMaterial(PIXI.Texture.EMPTY, {
+        program: program,
+        uniforms: {
+            uColor: {
+                x: color.r / 255,
+                y: color.g / 255,
+                width: color.b / 255,
+                height: color.a / 255
+            }
+        }
+    });
+    const quad = new PIXI.Mesh(geometry, material);
+    
+    app.renderer.state.setBlend(false);
+    app.renderer.render(quad, texture, false);
+    app.renderer.state.setBlend(true);
 }
 
 function createBuffer(width: number, height: number, format: PIXI.FORMATS, type: PIXI.TYPES): PIXI.RenderTexture {
@@ -96,13 +128,16 @@ function main(): void {
     const secondBuffer = createBuffer(width, height, PIXI.FORMATS.RGBA, PIXI.TYPES.FLOAT);
 
     // set slight gradient damping on the edges to avoid reflactions   
-    const offset = 32;
+    const offset = 40;
     for (let i = 0; i <= offset; ++i) {
-        drawRectangle(app, firstBuffer, {x: i, y: i}, {x: width - 2 * i, y: height - 2 * i}, 0x0000FF - offset + i);
+        drawRectangle(app, firstBuffer, {x: i, y: i}, {x: width - 2 * i, y: height - 2 * i}, {r: 0, g: 0, b: 0xFF - offset + i, a: 0xFF});
     }
 
+    // draw wall 
+    drawRectangle(app, firstBuffer, {x: 300, y: 245}, {x: 10, y: 100}, {r: 0x00, g: 0, b: 0xFF, a:  0x00});
+
     const sensor = {
-        x: 250,
+        x: 200,
         y: 250,
         r: 30
     }
@@ -183,8 +218,8 @@ function main(): void {
                     }
                 }
             }
-            console.log(max);
-            return max > 0.01;
+            // console.log(max);
+            return max > 0.005;
         })();
         drawSensor(sensorGraphics, sensor.r, activated);
 
