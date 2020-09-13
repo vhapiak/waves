@@ -22,14 +22,9 @@ class CMain implements IOnLevelSelected {
         const gameRound = new CGameRoundView(physics);
         app.stage.addChild(gameRound.getView());
 
+        gameRound.loadLevel(levelSet.levels[0]);
         app.ticker.add(function() {
-            physics.iterate();
             gameRound.update();
-        });
-
-        app.stage.interactive = true;
-        app.stage.on('pointerup', function(event: PIXI.InteractionEvent) {
-            physics.emitCircleWave(event.data.global.x, event.data.global.y, 6.0, 1.0);
         });
     }
 

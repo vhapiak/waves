@@ -1,10 +1,10 @@
 /// <reference types="pixi.js" />
 
-import { CLevelInfo } from "../../levels/CLevelInfo"
+import { LevelInfo } from "../../levels/LevelInfo"
 import { ELevelProgress } from "../../levels/ELevelProgress";
 
 export class CLevelItem {
-    constructor(levelInfo: CLevelInfo, index: number, listener: IOnLevelSelected) {
+    constructor(levelInfo: LevelInfo, index: number, listener: IOnLevelSelected) {
         this.levelInfo = levelInfo;
         this.index = index;
         this.listener = listener;
@@ -27,7 +27,7 @@ export class CLevelItem {
         }
 
         const name = new PIXI.Text(
-            levelInfo.getName(), 
+            levelInfo.name, 
             {
                 fill: '#ffffff',
                 fontSize: 24,
@@ -53,7 +53,7 @@ export class CLevelItem {
     }
 
     private updateProgressView(index: number, threshold: ELevelProgress) {
-        const progress = this.levelInfo.getProgress();
+        const progress = this.levelInfo.progress;
         this.progressViews[index].alpha = progress >= threshold ? 1.0 : 0.1;
     }
 
@@ -61,7 +61,7 @@ export class CLevelItem {
         this.listener.onLevelSelected(this.index);
     }
 
-    private readonly levelInfo: CLevelInfo;
+    private readonly levelInfo: LevelInfo;
     private readonly index: number;
     private readonly listener: IOnLevelSelected;
 

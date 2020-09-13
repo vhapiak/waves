@@ -1,49 +1,70 @@
 /// <reference types="pixi.js" />
 
-import * as VisualizationShader from '../../physics/shaders/VisualizationShader'
 import { CWavesPhysics } from "../../physics/CWavesPhysics";
+import { CWavesView } from "./CWavesView";
+import { LevelInfo } from "../../levels/LevelInfo";
+import { CRadialSensors } from "./CRadialSensor";
 
 export class CGameRoundView {
 
     constructor(physics: CWavesPhysics) {
         this.physics = physics
         this.container = new PIXI.Container();
-        
-        const buffer = physics.getActivateBuffer();
 
-        const quadGeometry = new PIXI.Geometry()
-        .addAttribute('aVertexPosition', 
-            [0, 0, 
-             buffer.width, 0, 
-             buffer.width, buffer.height,
-             0, buffer.height], 
-            2) 
-        .addAttribute('aUvs', 
-            [0, 0, 
-             1, 0, 
-             1, 1,
-             0, 1], 
-            2)
-        .addIndex([0, 1, 2, 0, 2, 3]);
+        this.wavesView = new CWavesView(physics);
+        this.sensors = [];
+        this.nextSensorToProcess = 0;
 
-        const onscreenProgram = PIXI.Program.from(VisualizationShader.vertex, VisualizationShader.fragment);
-        const onscreenMaterial = new PIXI.MeshMaterial(buffer, {
-            program: onscreenProgram
-        });
-        this.waves = new PIXI.Mesh(quadGeometry, onscreenMaterial);
+        this.container.addChild(this.wavesView.getView());
 
-        this.container.addChild(this.waves);
+        this.container.interactive = true;
+        this.container.on('pointerup', function(event: PIXI.InteractionEvent) {
+            this.physics.emitCircleWave(event.data.global.x, event.data.global.y, 6.0, 1.0);
+        }, this);
+    }
+
+    loadLevel(level: LevelInfo) {
+        this.reset();
+
+        this.levelInfo = level;
+        for (let sensorInfo of level.sensors) {
+            const sensor = new CRadialSensors(sensorInfo)
+            this.sensors.push(sensor);
+            this.container.addChild(sensor.getView());
+        }
     }
 
     update(): void {
-        this.waves.material.texture = this.physics.getActivateBuffer();
+        this.physics.iterate();
+        
+        // we are updating one sensor per cycle to increase fps
+        if (this.nextSensorToProcess < this.sensors.length) {
+            this.sensors[this.nextSensorToProcess].update(this.physics);
+            this.nextSensorToProcess = (this.nextSensorToProcess + 1) % this.sensors.length;
+        }
+
+        this.wavesView.update();
     }
 
     getView(): PIXI.Container {
         return this.container;
     }
 
+    private reset(): void {
+        this.physics.reset();
+
+        for(let sensor of this.sensors) {
+            this.container.removeChild(sensor.getView());
+        }
+        this.sensors = [];
+        this.nextSensorToProcess = 0;
+    }
+
     private readonly physics: CWavesPhysics;
     private readonly container: PIXI.Container;
-    private readonly waves: PIXI.Mesh;
+    private readonly wavesView: CWavesView;
+
+    private levelInfo: LevelInfo;
+    private sensors: CRadialSensors[]
+    private nextSensorToProcess: number;
 }

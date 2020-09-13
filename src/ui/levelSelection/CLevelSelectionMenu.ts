@@ -1,10 +1,10 @@
 /// <reference types="pixi.js" />
 
-import { CLevelsSetInfo } from "../../levels/CLevelsSetInfo"
+import { LevelsSetInfo } from "../../levels/LevelsSetInfo"
 import { CLevelItem } from "./CLevelItem"
 
 export class CLevelSelectionMenu {
-    constructor(levelsSetInfo: CLevelsSetInfo, listener: IOnLevelSelected) {
+    constructor(levelsSetInfo: LevelsSetInfo, listener: IOnLevelSelected) {
         this.container = new PIXI.Container();
         this.items = [];
 
@@ -15,7 +15,7 @@ export class CLevelSelectionMenu {
         const itemWidth = 64 + 64;
         const itemHeight = 90 + 40;
 
-        const levels = levelsSetInfo.getLevels();
+        const levels = levelsSetInfo.levels;
         for (let i = 0; i < levels.length; ++i) {
             const level = levels[i];
             const item = new CLevelItem(level, i, listener);

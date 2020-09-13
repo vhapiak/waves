@@ -3,6 +3,7 @@
 import * as IterationProgram from './shaderPrograms/IterationProgram'
 import { CBufferFiller } from "./CBufferFiller";
 import { CBufferGradientFiller } from './CBufferGradientFiller';
+import { CAmplitudeAccessor } from './CAmplitudeAccessor';
 
 export class CWavesPhysics {
     constructor(renderer: PIXI.Renderer, width: number, height: number) {
@@ -79,6 +80,15 @@ export class CWavesPhysics {
                 damping: false,
                 obstacle: false
             });
+    }
+
+    makeAmplitudeAccessor(x: number, y: number, width: number, height: number): CAmplitudeAccessor {
+        var buffer = new Float32Array(4 * width * height); // 4 components per pixel
+
+        this.renderer.renderTexture.bind(this.activeBuffer);
+        const gl = this.renderer.gl; 
+        gl.readPixels(x, y, width, height, gl.RGBA, gl.FLOAT, buffer);
+        return new CAmplitudeAccessor(buffer, width, height);
     }
 
     reset(): void {
