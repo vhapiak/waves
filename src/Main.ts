@@ -25,6 +25,9 @@ class CMain implements IOnLevelSelected {
         gameRound.loadLevel(levelSet.levels[0]);
         app.ticker.add(function() {
             gameRound.update();
+            if (gameRound.isRoundEnded()) {
+                console.log('ended!');
+            }
         });
     }
 

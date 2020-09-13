@@ -19,11 +19,15 @@ export class CRadialSensors {
             2 * this.sensorsInfo.radius,
             2 * this.sensorsInfo.radius);
 
-        const prev = this.isActivated; 
-        this.isActivated = this.isActive(accessor);
-        if (prev !== this.isActivated) {
+        const prev = this.isActivated(); 
+        this._isActivated = this.isActive(accessor);
+        if (prev !== this.isActivated()) {
             this.redraw();
         }
+    }
+
+    isActivated(): boolean {
+        return this._isActivated;
     }
 
     getView(): PIXI.Container {
@@ -51,12 +55,12 @@ export class CRadialSensors {
     private redraw(): void {
         this.view.clear();
 
-        this.view.lineStyle(5, 0xffffff, this.isActivated ? 0.9 : 0.4);
+        this.view.lineStyle(5, 0xffffff, this.isActivated() ? 0.9 : 0.4);
         this.view.drawCircle(this.sensorsInfo.x, this.sensorsInfo.y, this.sensorsInfo.radius);
     }
 
     private readonly sensorsInfo: SensorInfo
     private readonly view: PIXI.Graphics;
 
-    private isActivated: boolean;
+    private _isActivated: boolean;
 }

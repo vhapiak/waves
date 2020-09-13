@@ -46,6 +46,15 @@ export class CGameRoundView {
         this.wavesView.update();
     }
 
+    isRoundEnded(): boolean {
+        for (let sensor of this.sensors) {
+            if (!sensor.isActivated()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     getView(): PIXI.Container {
         return this.container;
     }
