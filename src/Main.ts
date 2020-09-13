@@ -130,7 +130,7 @@ function main(): void {
     // set slight gradient damping on the edges to avoid reflactions   
     const offset = 40;
     for (let i = 0; i <= offset; ++i) {
-        drawRectangle(app, firstBuffer, {x: i, y: i}, {x: width - 2 * i, y: height - 2 * i}, {r: 0, g: 0, b: 0xFF - offset + i, a: 0xFF});
+        drawRectangle(app, firstBuffer, {x: i, y: i}, {x: width - 2 * i, y: height - 2 * i}, {r: 0, g: 0, b: 0xFF - (offset - i) / 2, a: 0xFF});
     }
 
     // draw wall 
