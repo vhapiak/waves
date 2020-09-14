@@ -4,6 +4,7 @@ import { CWavesPhysics } from "../../physics/CWavesPhysics";
 import { CWavesView } from "./CWavesView";
 import { LevelInfo } from "../../levels/LevelInfo";
 import { CRadialSensors } from "./CRadialSensor";
+import { ELevelProgress } from "../../levels/ELevelProgress";
 
 export class CGameRoundView {
 
@@ -14,12 +15,14 @@ export class CGameRoundView {
         this.wavesView = new CWavesView(physics);
         this.sensors = [];
         this.nextSensorToProcess = 0;
+        this.numberOfClicks = 0;
 
         this.container.addChild(this.wavesView.getView());
 
         this.container.interactive = true;
         this.container.on('pointerup', function(event: PIXI.InteractionEvent) {
             this.physics.emitCircleWave(event.data.global.x, event.data.global.y, 6.0, 1.0);
+            this.numberOfClicks++;
         }, this);
     }
 
@@ -55,6 +58,16 @@ export class CGameRoundView {
         return true;
     }
 
+    getProgress(): ELevelProgress {
+        if (this.numberOfClicks <= this.levelInfo.targetNumberOfClicks) {
+            return ELevelProgress.PerfectlyDone;
+        }
+        if (this.numberOfClicks <= this.levelInfo.targetNumberOfClicks + this.levelInfo.numberOfClicksDeviation) {
+            return ELevelProgress.Done;
+        }
+        return ELevelProgress.Played;
+    }
+
     getView(): PIXI.Container {
         return this.container;
     }
@@ -67,6 +80,7 @@ export class CGameRoundView {
         }
         this.sensors = [];
         this.nextSensorToProcess = 0;
+        this.numberOfClicks = 0;
     }
 
     private readonly physics: CWavesPhysics;
@@ -76,4 +90,5 @@ export class CGameRoundView {
     private levelInfo: LevelInfo;
     private sensors: CRadialSensors[]
     private nextSensorToProcess: number;
+    private numberOfClicks: number;
 }

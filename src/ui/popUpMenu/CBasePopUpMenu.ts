@@ -79,8 +79,8 @@ export class CBasePopUpMenu {
         return this.view;
     }
 
-    private readonly view: PIXI.Container;
-    private readonly continueButton: PIXI.Sprite;
-    private readonly restartButton: PIXI.Sprite;
-    private readonly menuButton: PIXI.Sprite;
+    protected readonly view: PIXI.Container;
+    protected readonly continueButton: PIXI.Sprite;
+    protected readonly restartButton: PIXI.Sprite;
+    protected readonly menuButton: PIXI.Sprite;
 }

@@ -3,6 +3,7 @@ import { CLevelSelectionMenu } from "./ui/levelSelection/CLevelSelectionMenu";
 import { CWavesPhysics } from "./physics/CWavesPhysics";
 import { CGameRoundView } from "./ui/gameRound/CGameRoundView";
 import { CPausePopUpMenu } from "./ui/popUpMenu/CPausePopUpMenu";
+import { CRoundResultPopUpMenu } from "./ui/popUpMenu/CRoundResultPopUpMenu";
 
 const width = 800;
 const height = 600;
@@ -46,15 +47,24 @@ class CMain implements IOnLevelSelected {
         this.pauseMenu.onRestartClick(CMain.prototype.onRestart, this);
         this.pauseMenu.onMenuClick(CMain.prototype.onReturnToMenu, this);
 
+        this.resultMenu = new CRoundResultPopUpMenu(this.gameRound);
+        this.resultMenu.getView().position.set(width / 2, height / 2);
+
+        this.resultMenu.onContinueClick(CMain.prototype.onNextLevel, this);
+        this.resultMenu.onRestartClick(CMain.prototype.onRestart, this);
+        this.resultMenu.onMenuClick(CMain.prototype.onReturnToMenu, this);
+
         this.selectedLevel = 0;
         this.isPaused = true;
 
         app.stage.addChild(this.levelSelectionMenu.getView());
         app.stage.addChild(this.gameRound.getView());
         app.stage.addChild(this.pauseMenu.getView());
+        app.stage.addChild(this.resultMenu.getView());
 
         this.gameRound.getView().visible = false;
         this.pauseMenu.getView().visible = false;
+        this.resultMenu.hide();
 
         app.ticker.add(CMain.prototype.onTick, this);
     }
@@ -66,6 +76,16 @@ class CMain implements IOnLevelSelected {
 
         this.selectedLevel = index;
         this.isPaused = false;
+    }
+
+    onNextLevel(event: PIXI.InteractionEvent) {
+        this.resultMenu.hide();
+        if (this.selectedLevel + 1 >= levelSet.levels.length) {
+            this.onReturnToMenu(event);
+        } else {
+            this.onLevelSelected(this.selectedLevel + 1);
+        }
+        event.stopPropagation();
     }
 
     onPause(event: PIXI.InteractionEvent) {
@@ -82,15 +102,18 @@ class CMain implements IOnLevelSelected {
 
     onRestart(event: PIXI.InteractionEvent) {
         this.pauseMenu.getView().visible = false;
+        this.resultMenu.hide();
         this.onLevelSelected(this.selectedLevel);
         event.stopPropagation();
     }
 
     onReturnToMenu(event: PIXI.InteractionEvent) {
         this.isPaused = true;
+        this.levelSelectionMenu.update();
         this.levelSelectionMenu.getView().visible = true;
         this.gameRound.getView().visible = false;
         this.pauseMenu.getView().visible = false;
+        this.resultMenu.hide();
         event.stopPropagation();
     }
 
@@ -98,7 +121,8 @@ class CMain implements IOnLevelSelected {
         if (!this.isPaused) {
             this.gameRound.update();
             if (this.gameRound.isRoundEnded()) {
-                console.log('ended!');
+                this.isPaused = true;
+                this.resultMenu.show(levelSet.levels[this.selectedLevel]);
             }
         }
     }
@@ -106,6 +130,7 @@ class CMain implements IOnLevelSelected {
     private readonly levelSelectionMenu: CLevelSelectionMenu;
     private readonly gameRound: CGameRoundView;
     private readonly pauseMenu: CPausePopUpMenu;
+    private readonly resultMenu: CRoundResultPopUpMenu;
     private readonly physics: CWavesPhysics;
 
     private selectedLevel: number;
