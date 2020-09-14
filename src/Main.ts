@@ -2,6 +2,7 @@ import { levelSet } from "./levels/LevelSet";
 import { CLevelSelectionMenu } from "./ui/levelSelection/CLevelSelectionMenu";
 import { CWavesPhysics } from "./physics/CWavesPhysics";
 import { CGameRoundView } from "./ui/gameRound/CGameRoundView";
+import { CPausePopUpMenu } from "./ui/popUpMenu/CPausePopUpMenu";
 
 const width = 800;
 const height = 600;
@@ -15,25 +16,100 @@ function main(): void {
 
 class CMain implements IOnLevelSelected {
     constructor(app: PIXI.Application) {
-        const levelSelectionMenu = new CLevelSelectionMenu(levelSet, this);
-        // app.stage.addChild(levelSelectionMenu.getView());
+        this.levelSelectionMenu = new CLevelSelectionMenu(levelSet, this);
 
-        const physics = new CWavesPhysics(app.renderer, width, height);
-        const gameRound = new CGameRoundView(physics);
-        app.stage.addChild(gameRound.getView());
+        this.physics = new CWavesPhysics(app.renderer, width, height);
+        this.gameRound = new CGameRoundView(this.physics);
 
-        gameRound.loadLevel(levelSet.levels[0]);
-        app.ticker.add(function() {
-            gameRound.update();
-            if (gameRound.isRoundEnded()) {
-                console.log('ended!');
-            }
-        });
+        const pauseButton = new PIXI.Sprite(PIXI.Texture.from('data/img/pause.png'));
+        pauseButton.interactive = true;
+        pauseButton.buttonMode = true;
+        pauseButton.on('pointerup', CMain.prototype.onPause, this);
+
+        pauseButton.anchor.set(0.0, 0.0);
+        pauseButton.position.set(15, 15);
+        this.gameRound.getView().addChild(pauseButton); 
+
+        const restartButton = new PIXI.Sprite(PIXI.Texture.from('data/img/replay.png'));
+        restartButton.interactive = true;
+        restartButton.buttonMode = true;
+        restartButton.on('pointerup', CMain.prototype.onRestart, this);
+
+        restartButton.anchor.set(1.0, 0.0);
+        restartButton.position.set(width - 15, 15);
+        this.gameRound.getView().addChild(restartButton); 
+
+        this.pauseMenu = new CPausePopUpMenu();
+        this.pauseMenu.getView().position.set(width / 2, height / 2);
+
+        this.pauseMenu.onContinueClick(CMain.prototype.onResume, this);
+        this.pauseMenu.onRestartClick(CMain.prototype.onRestart, this);
+        this.pauseMenu.onMenuClick(CMain.prototype.onReturnToMenu, this);
+
+        this.selectedLevel = 0;
+        this.isPaused = true;
+
+        app.stage.addChild(this.levelSelectionMenu.getView());
+        app.stage.addChild(this.gameRound.getView());
+        app.stage.addChild(this.pauseMenu.getView());
+
+        this.gameRound.getView().visible = false;
+        this.pauseMenu.getView().visible = false;
+
+        app.ticker.add(CMain.prototype.onTick, this);
     }
 
     onLevelSelected(index: number): void {
-        console.log('Selected level', index);
+        this.gameRound.getView().visible = true;
+        this.levelSelectionMenu.getView().visible = false;
+        this.gameRound.loadLevel(levelSet.levels[index]);
+
+        this.selectedLevel = index;
+        this.isPaused = false;
     }
+
+    onPause(event: PIXI.InteractionEvent) {
+        this.isPaused = true;
+        this.pauseMenu.getView().visible = true;
+        event.stopPropagation();
+    }
+
+    onResume(event: PIXI.InteractionEvent) {
+        this.isPaused = false;
+        this.pauseMenu.getView().visible = false;
+        event.stopPropagation();
+    }
+
+    onRestart(event: PIXI.InteractionEvent) {
+        this.pauseMenu.getView().visible = false;
+        this.onLevelSelected(this.selectedLevel);
+        event.stopPropagation();
+    }
+
+    onReturnToMenu(event: PIXI.InteractionEvent) {
+        this.isPaused = true;
+        this.levelSelectionMenu.getView().visible = true;
+        this.gameRound.getView().visible = false;
+        this.pauseMenu.getView().visible = false;
+        event.stopPropagation();
+    }
+
+    onTick() {
+        if (!this.isPaused) {
+            this.gameRound.update();
+            if (this.gameRound.isRoundEnded()) {
+                console.log('ended!');
+            }
+        }
+    }
+
+    private readonly levelSelectionMenu: CLevelSelectionMenu;
+    private readonly gameRound: CGameRoundView;
+    private readonly pauseMenu: CPausePopUpMenu;
+    private readonly physics: CWavesPhysics;
+
+    private selectedLevel: number;
+    private isPaused: boolean;
 }
 
 main();
