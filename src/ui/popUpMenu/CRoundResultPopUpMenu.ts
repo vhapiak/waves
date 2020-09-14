@@ -25,17 +25,13 @@ export class CRoundResultPopUpMenu extends CBasePopUpMenu {
         }
     }
 
-    show(levelInfo: LevelInfo): void {
+    show(): void {
         this.view.visible = true;
 
         const progress = this.gameRound.getProgress();
         this.updateProgressView(0, progress, ELevelProgress.Played);
         this.updateProgressView(1, progress, ELevelProgress.Done);
         this.updateProgressView(2, progress, ELevelProgress.PerfectlyDone);
-
-        if (progress > levelInfo.progress) {
-            levelInfo.progress = progress;
-        }
     }
 
 

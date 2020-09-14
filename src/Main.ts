@@ -7,6 +7,7 @@ import { CWavesPhysics } from "./physics/CWavesPhysics";
 import { CGameRoundView } from "./ui/gameRound/CGameRoundView";
 import { CPausePopUpMenu } from "./ui/popUpMenu/CPausePopUpMenu";
 import { CRoundResultPopUpMenu } from "./ui/popUpMenu/CRoundResultPopUpMenu";
+import { CProgressManager } from "./levels/CProgressManager";
 
 const width = 800;
 const height = 600;
@@ -37,6 +38,9 @@ function main(): void {
 
 class CMain implements IOnLevelSelected {
     constructor(app: PIXI.Application) {
+        this.progressManager = new CProgressManager(levelSet);
+        this.progressManager.load();
+
         this.levelSelectionMenu = new CLevelSelectionMenu(levelSet, this);
 
         this.physics = new CWavesPhysics(app.renderer, width, height);
@@ -142,11 +146,19 @@ class CMain implements IOnLevelSelected {
             this.gameRound.update();
             if (this.gameRound.isRoundEnded()) {
                 this.isPaused = true;
-                this.resultMenu.show(levelSet.levels[this.selectedLevel]);
+                this.resultMenu.show();
+
+                const levelInfo = levelSet.levels[this.selectedLevel];
+                const progress = this.gameRound.getProgress();
+                if (progress > levelInfo.progress) {
+                    levelInfo.progress = progress;
+                    this.progressManager.save();
+                }
             }
         }
     }
 
+    private readonly progressManager: CProgressManager
     private readonly levelSelectionMenu: CLevelSelectionMenu;
     private readonly gameRound: CGameRoundView;
     private readonly pauseMenu: CPausePopUpMenu;
