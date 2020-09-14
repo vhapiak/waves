@@ -1,3 +1,6 @@
+/// <reference types="pixi.js" />
+/// <reference types="stats" />
+
 import { levelSet } from "./levels/LevelSet";
 import { CLevelSelectionMenu } from "./ui/levelSelection/CLevelSelectionMenu";
 import { CWavesPhysics } from "./physics/CWavesPhysics";
@@ -9,10 +12,27 @@ const width = 800;
 const height = 600;
 
 function main(): void {
-    const app = new PIXI.Application({ width: width, height: height});
+    const app = new PIXI.Application({autoStart: false, width: width, height: height});
     document.body.appendChild(app.view);
 
+    const stats = new Stats();
+    document.body.appendChild(stats.dom);
+
     new CMain(app);
+
+    function loop() {
+        stats.begin();
+
+        const time = performance.now();
+        app.ticker.update(time);
+        app.render();
+
+        stats.end();
+
+        requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
 }
 
 class CMain implements IOnLevelSelected {

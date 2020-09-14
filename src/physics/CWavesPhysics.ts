@@ -83,6 +83,7 @@ export class CWavesPhysics {
     }
 
     makeAmplitudeAccessor(x: number, y: number, width: number, height: number): CAmplitudeAccessor {
+        // todo: create once on init
         var buffer = new Float32Array(4 * width * height); // 4 components per pixel
 
         this.renderer.renderTexture.bind(this.activeBuffer);
