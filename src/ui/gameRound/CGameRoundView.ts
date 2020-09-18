@@ -4,6 +4,7 @@ import { CWavesPhysics } from "../../physics/CWavesPhysics";
 import { CWavesView } from "./CWavesView";
 import { LevelInfo } from "../../levels/LevelInfo";
 import { CRadialSensors } from "./CRadialSensor";
+import { CObstacleView } from "./CObstacleView";
 import { ELevelProgress } from "../../levels/ELevelProgress";
 
 export class CGameRoundView {
@@ -14,6 +15,7 @@ export class CGameRoundView {
 
         this.wavesView = new CWavesView(physics);
         this.sensors = [];
+        this.obstacles = [];
         this.nextSensorToProcess = 0;
         this.numberOfClicks = 0;
 
@@ -34,6 +36,18 @@ export class CGameRoundView {
             const sensor = new CRadialSensors(sensorInfo)
             this.sensors.push(sensor);
             this.container.addChild(sensor.getView());
+        }
+
+        for (let obstacleInfo of level.obstacles) {
+            this.physics.putRectangleObstacle(
+                obstacleInfo.x,
+                obstacleInfo.y,
+                obstacleInfo.width,
+                obstacleInfo.height
+            );
+            const obstacle = new CObstacleView(obstacleInfo);
+            this.obstacles.push(obstacle);
+            this.container.addChild(obstacle.getView());
         }
     }
 
@@ -78,7 +92,13 @@ export class CGameRoundView {
         for(let sensor of this.sensors) {
             this.container.removeChild(sensor.getView());
         }
+
+        for(let obstacle of this.obstacles) {
+            this.container.removeChild(obstacle.getView());
+        }
+
         this.sensors = [];
+        this.obstacles = [];
         this.nextSensorToProcess = 0;
         this.numberOfClicks = 0;
     }
@@ -89,6 +109,7 @@ export class CGameRoundView {
 
     private levelInfo: LevelInfo;
     private sensors: CRadialSensors[]
+    private obstacles: CObstacleView[]
     private nextSensorToProcess: number;
     private numberOfClicks: number;
 }

@@ -4,6 +4,21 @@ import { ELevelProgress } from "./ELevelProgress";
 export const levelSet: LevelsSetInfo = {
     levels: [
         {
+            name: "Level 1",
+            progress: ELevelProgress.NotPlayed,
+            targetNumberOfClicks: 1,
+            numberOfClicksDeviation: 0,
+            sensors: [
+                {
+                    x: 400,
+                    y: 300,
+                    radius: 30,
+                    threshold: 0.01
+                }
+            ],
+            obstacles: []
+        },
+        {
             name: "Level 2",
             progress: ELevelProgress.NotPlayed,
             targetNumberOfClicks: 1,
@@ -21,19 +36,46 @@ export const levelSet: LevelsSetInfo = {
                     radius: 30,
                     threshold: 0.01
                 }
-            ]
+            ],
+            obstacles: []
         },
         {
-            name: "Level 1",
+            name: "Level 3",
             progress: ELevelProgress.NotPlayed,
             targetNumberOfClicks: 1,
             numberOfClicksDeviation: 0,
             sensors: [
                 {
                     x: 400,
+                    y: 100,
+                    radius: 30,
+                    threshold: 0.01
+                },
+                {
+                    x: 400,
+                    y: 500,
+                    radius: 30,
+                    threshold: 0.01
+                },
+                {
+                    x: 600,
                     y: 300,
                     radius: 30,
                     threshold: 0.01
+                },
+                {
+                    x: 500,
+                    y: 300,
+                    radius: 30,
+                    threshold: 0.01
+                }
+            ],
+            obstacles: [
+                {
+                    x: 330,
+                    y: 250,
+                    width: 20,
+                    height: 100
                 }
             ]
         }

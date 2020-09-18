@@ -82,6 +82,27 @@ export class CWavesPhysics {
             });
     }
 
+    putRectangleObstacle(x: number, y: number, width: number, height: number) {
+        this.bufferFiller.fillRectangle(
+            this.activeBuffer,
+            x,
+            y,
+            width,
+            height,
+            {
+                amlitude: 0.0,
+                velocity: 0.0,
+                damping: 0.0,
+                obstacle: true
+            },
+            {
+                amlitude: false,
+                velocity: false,
+                damping: false,
+                obstacle: true
+            });
+    }
+
     makeAmplitudeAccessor(x: number, y: number, width: number, height: number): CAmplitudeAccessor {
         // todo: create once on init
         var buffer = new Float32Array(4 * width * height); // 4 components per pixel
