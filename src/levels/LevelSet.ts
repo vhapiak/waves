@@ -7,7 +7,7 @@ export const levelSet: LevelsSetInfo = {
             name: "Level 1",
             progress: ELevelProgress.NotPlayed,
             targetNumberOfClicks: 1,
-            numberOfClicksDeviation: 0,
+            iterationsInActiveState: 90,
             sensors: [
                 {
                     x: 400,
@@ -22,7 +22,7 @@ export const levelSet: LevelsSetInfo = {
             name: "Level 2",
             progress: ELevelProgress.NotPlayed,
             targetNumberOfClicks: 1,
-            numberOfClicksDeviation: 0,
+            iterationsInActiveState: 90,
             sensors: [
                 {
                     x: 300,
@@ -43,7 +43,7 @@ export const levelSet: LevelsSetInfo = {
             name: "Level 3",
             progress: ELevelProgress.NotPlayed,
             targetNumberOfClicks: 1,
-            numberOfClicksDeviation: 0,
+            iterationsInActiveState: 60,
             sensors: [
                 {
                     x: 400,

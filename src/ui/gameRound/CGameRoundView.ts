@@ -6,6 +6,7 @@ import { LevelInfo } from "../../levels/LevelInfo";
 import { CRadialSensors } from "./CRadialSensor";
 import { CObstacleView } from "./CObstacleView";
 import { ELevelProgress } from "../../levels/ELevelProgress";
+import { CTimerView } from "./CTimerView";
 
 export class CGameRoundView {
 
@@ -18,8 +19,13 @@ export class CGameRoundView {
         this.obstacles = [];
         this.nextSensorToProcess = 0;
         this.numberOfClicks = 0;
+        this.activationTimepoint = 0;
+
+        this.timerView = new CTimerView();
+        this.timerView.getView().position.set(390, 35);
 
         this.container.addChild(this.wavesView.getView());
+        this.container.addChild(this.timerView.getView());
 
         this.container.interactive = true;
         this.container.on('pointerup', function(event: PIXI.InteractionEvent) {
@@ -49,6 +55,8 @@ export class CGameRoundView {
             this.obstacles.push(obstacle);
             this.container.addChild(obstacle.getView());
         }
+
+        this.timerView.setExpectedTime(level.iterationsInActiveState);
     }
 
     update(): void {
@@ -59,27 +67,32 @@ export class CGameRoundView {
             this.sensors[this.nextSensorToProcess].update(this.physics);
             this.nextSensorToProcess = (this.nextSensorToProcess + 1) % this.sensors.length;
         }
+        
+        if (this.isAllSensorsActive()) {
+            if (this.activationTimepoint === 0) {
+                this.activationTimepoint = this.physics.getIterationNumber();
+            }
+        } else if (this.activationTimepoint > 0) {
+            this.activationTimepoint = 0;
+        }
 
+        this.timerView.update(this.getActiveTime());
         this.wavesView.update();
     }
 
     isRoundEnded(): boolean {
-        for (let sensor of this.sensors) {
-            if (!sensor.isActivated()) {
-                return false;
-            }
-        }
-        return true;
+        return this.isSensorsActiveLongEnough();
     }
 
     getProgress(): ELevelProgress {
+        let progress = ELevelProgress.Played;
         if (this.numberOfClicks <= this.levelInfo.targetNumberOfClicks) {
-            return ELevelProgress.PerfectlyDone;
+            progress += 1;
         }
-        if (this.numberOfClicks <= this.levelInfo.targetNumberOfClicks + this.levelInfo.numberOfClicksDeviation) {
-            return ELevelProgress.Done;
+        if (this.isSensorsActiveLongEnough()) {
+            progress += 1;
         }
-        return ELevelProgress.Played;
+        return progress;
     }
 
     getView(): PIXI.Container {
@@ -88,6 +101,7 @@ export class CGameRoundView {
 
     private reset(): void {
         this.physics.reset();
+        this.timerView.update(0);
 
         for(let sensor of this.sensors) {
             this.container.removeChild(sensor.getView());
@@ -101,15 +115,38 @@ export class CGameRoundView {
         this.obstacles = [];
         this.nextSensorToProcess = 0;
         this.numberOfClicks = 0;
+        this.activationTimepoint = 0;
+    }
+
+    private isAllSensorsActive(): boolean {
+        for (let sensor of this.sensors) {
+            if (!sensor.isActivated()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private getActiveTime(): number {
+        if (this.activationTimepoint === 0) {
+            return 0;
+        }
+        return this.physics.getIterationNumber() - this.activationTimepoint;
+    }
+
+    private isSensorsActiveLongEnough(): boolean {
+        return this.getActiveTime() >= this.levelInfo.iterationsInActiveState;
     }
 
     private readonly physics: CWavesPhysics;
     private readonly container: PIXI.Container;
     private readonly wavesView: CWavesView;
+    private readonly timerView: CTimerView;
 
     private levelInfo: LevelInfo;
     private sensors: CRadialSensors[]
     private obstacles: CObstacleView[]
     private nextSensorToProcess: number;
     private numberOfClicks: number;
+    private activationTimepoint: number;
 }

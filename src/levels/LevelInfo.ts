@@ -7,7 +7,7 @@ export type LevelInfo = {
     name: string, 
     progress: ELevelProgress,
     targetNumberOfClicks: number,
-    numberOfClicksDeviation: number,
+    iterationsInActiveState: number,
     sensors: SensorInfo[],
     obstacles: ObstacleInfo[],
 };

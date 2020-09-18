@@ -54,6 +54,8 @@ export class CWavesPhysics {
 
         this.iterationQuad.material.texture = this.processingBuffer;
         this.renderer.render(this.iterationQuad, this.activeBuffer, true);
+
+        this.iterationNumber++;
     }
 
     emitCircleWave(x: number, y: number, radius: number, value: number): void {
@@ -137,10 +139,16 @@ export class CWavesPhysics {
                     obstacle: true
                 });
         }
+
+        this.iterationNumber = 0;
     }
 
     getActivateBuffer(): PIXI.RenderTexture {
         return this.activeBuffer;
+    }
+
+    getIterationNumber(): number {
+        return this.iterationNumber;
     }
 
     private createBuffer(width: number, height: number): PIXI.RenderTexture {
@@ -165,4 +173,5 @@ export class CWavesPhysics {
 
     private activeBuffer: PIXI.RenderTexture;
     private processingBuffer: PIXI.RenderTexture;
+    private iterationNumber: number;
 }

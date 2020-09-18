@@ -40,7 +40,7 @@ export class CRoundResultPopUpMenu extends CBasePopUpMenu {
     }
 
     private updateProgressView(index: number, progress: ELevelProgress, threshold: ELevelProgress) {
-        this.progressViews[index].alpha = progress >= threshold ? 1.0 : 0.1;
+        this.progressViews[index].alpha = progress >= threshold ? 1.0 : 0.4;
     }
 
     private readonly gameRound: CGameRoundView;
