@@ -13,15 +13,13 @@ export const levelSet: LevelsSetInfo = {
                     x: 300,
                     y: 300,
                     radius: 30,
-                    leftEdge: 0.01,
-                    rightEdge: 1.0
+                    threshold: 0.01
                 },
                 {
                     x: 500,
                     y: 300,
                     radius: 30,
-                    leftEdge: 0.01,
-                    rightEdge: 1.0
+                    threshold: 0.01
                 }
             ]
         },
@@ -35,8 +33,7 @@ export const levelSet: LevelsSetInfo = {
                     x: 400,
                     y: 300,
                     radius: 30,
-                    leftEdge: 0.01,
-                    rightEdge: 1.0
+                    threshold: 0.01
                 }
             ]
         }
