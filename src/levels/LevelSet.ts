@@ -152,6 +152,51 @@ export const levelSet: LevelsSetInfo = {
                 }
             ],
             obstacles: []
+        },
+        {
+            name: "Level 6",
+            progress: ELevelProgress.NotPlayed,
+            availableTools: [EToolType.PositiveWave, EToolType.NegativeWave],
+            targetNumberOfClicks: 2,
+            iterationsInActiveState: 60,
+            sensors: [
+                {
+                    type: ESensorType.NoWave,
+                    x: 400,
+                    y: 300,
+                    radius: 30,
+                    threshold: 0.005
+                },
+                {
+                    type: ESensorType.Positive,
+                    x: 250,
+                    y: 150,
+                    radius: 30,
+                    threshold: 0.01
+                },
+                {
+                    type: ESensorType.Positive,
+                    x: 550,
+                    y: 450,
+                    radius: 30,
+                    threshold: 0.01
+                },
+                {
+                    type: ESensorType.Negative,
+                    x: 550,
+                    y: 150,
+                    radius: 30,
+                    threshold: 0.01
+                },
+                {
+                    type: ESensorType.Negative,
+                    x: 250,
+                    y: 450,
+                    radius: 30,
+                    threshold: 0.01
+                }
+            ],
+            obstacles: []
         }
     ]
 };
