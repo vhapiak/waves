@@ -3,10 +3,11 @@
 import { CWavesPhysics } from "../../physics/CWavesPhysics";
 import { CWavesView } from "./CWavesView";
 import { LevelInfo } from "../../levels/LevelInfo";
-import { CRadialSensors } from "./CRadialSensor";
 import { CObstacleView } from "./CObstacleView";
 import { ELevelProgress } from "../../levels/ELevelProgress";
 import { CTimerView } from "./CTimerView";
+import { makeSensor } from "./sensors/SensorsFactory";
+import { CBaseRadialSensor } from "./sensors/CBaseRadialSensor";
 
 export class CGameRoundView {
 
@@ -39,7 +40,7 @@ export class CGameRoundView {
 
         this.levelInfo = level;
         for (let sensorInfo of level.sensors) {
-            const sensor = new CRadialSensors(sensorInfo)
+            const sensor = makeSensor(sensorInfo);
             this.sensors.push(sensor);
             this.container.addChild(sensor.getView());
         }
@@ -144,7 +145,7 @@ export class CGameRoundView {
     private readonly timerView: CTimerView;
 
     private levelInfo: LevelInfo;
-    private sensors: CRadialSensors[]
+    private sensors: CBaseRadialSensor[]
     private obstacles: CObstacleView[]
     private nextSensorToProcess: number;
     private numberOfClicks: number;
