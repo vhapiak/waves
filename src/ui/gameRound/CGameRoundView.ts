@@ -35,12 +35,7 @@ export class CGameRoundView {
         this.container.addChild(this.toolSelectionView.getView());
 
         this.container.interactive = true;
-        this.container.on('pointerup', function(event: PIXI.InteractionEvent) {
-            const type = this.toolSelectionView.getSelectedTool();
-            const value = (type === EToolType.PositiveWave ? 1.0 : -1.0);
-            this.physics.emitCircleWave(event.data.global.x, event.data.global.y, 6.0, value);
-            this.numberOfClicks++;
-        }, this);
+        this.container.on('pointerup', CGameRoundView.prototype.onClick, this);
     }
 
     loadLevel(level: LevelInfo) {
@@ -148,6 +143,25 @@ export class CGameRoundView {
 
     private isSensorsActiveLongEnough(): boolean {
         return this.getActiveTime() >= this.levelInfo.iterationsInActiveState;
+    }
+
+    private onClick(event: PIXI.InteractionEvent): void {
+        const type = this.toolSelectionView.getSelectedTool();
+        const value = (type === EToolType.PositiveWave ? 1.0 : -1.0);
+
+        const x = event.data.global.x;
+        const y = event.data.global.y;
+
+        for (let sensorInfo of this.levelInfo.sensors) {
+            const dx = sensorInfo.x - x;
+            const dy = sensorInfo.y - y;
+            if (dx * dx + dy * dy <= sensorInfo.radius * sensorInfo.radius) {
+                return;
+            }
+        }
+
+        this.physics.emitCircleWave(x, y, 6.0, value);
+        this.numberOfClicks++;
     }
 
     private readonly physics: CWavesPhysics;
