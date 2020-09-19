@@ -3,6 +3,7 @@ import { ELevelProgress } from "./ELevelProgress"
 import { SensorInfo } from "./SensorInfo"
 import { ObstacleInfo } from "./ObstacleInfo";
 import { EToolType } from "./EToolType";
+import { HintInfo } from "./HintInfo";
 
 export type LevelInfo = {
     name: string, 
@@ -12,4 +13,5 @@ export type LevelInfo = {
     iterationsInActiveState: number,
     sensors: SensorInfo[],
     obstacles: ObstacleInfo[],
+    hints: HintInfo[],
 };

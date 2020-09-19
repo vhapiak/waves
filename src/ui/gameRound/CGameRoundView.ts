@@ -10,6 +10,7 @@ import { makeSensor } from "./sensors/SensorsFactory";
 import { CBaseRadialSensor } from "./sensors/CBaseRadialSensor";
 import { CToolsSelectionView } from "./CToolsSelectionView";
 import { EToolType } from "../../levels/EToolType";
+import { CHintView } from "./CHintView";
 
 export class CGameRoundView {
 
@@ -19,7 +20,7 @@ export class CGameRoundView {
 
         this.wavesView = new CWavesView(physics);
         this.sensors = [];
-        this.obstacles = [];
+        this.staticObjects = [];
         this.nextSensorToProcess = 0;
         this.numberOfClicks = 0;
         this.activationTimepoint = 0;
@@ -56,8 +57,14 @@ export class CGameRoundView {
                 obstacleInfo.height
             );
             const obstacle = new CObstacleView(obstacleInfo);
-            this.obstacles.push(obstacle);
+            this.staticObjects.push(obstacle.getView());
             this.container.addChild(obstacle.getView());
+        }
+
+        for (let hintInfo of level.hints) {
+            const hint = new CHintView(hintInfo);
+            this.staticObjects.push(hint.getView());
+            this.container.addChild(hint.getView());
         }
 
         this.timerView.setExpectedTime(level.iterationsInActiveState);
@@ -114,12 +121,12 @@ export class CGameRoundView {
             this.container.removeChild(sensor.getView());
         }
 
-        for(let obstacle of this.obstacles) {
-            this.container.removeChild(obstacle.getView());
+        for(let object of this.staticObjects) {
+            this.container.removeChild(object);
         }
 
         this.sensors = [];
-        this.obstacles = [];
+        this.staticObjects = [];
         this.nextSensorToProcess = 0;
         this.numberOfClicks = 0;
         this.activationTimepoint = 0;
@@ -172,7 +179,7 @@ export class CGameRoundView {
 
     private levelInfo: LevelInfo;
     private sensors: CBaseRadialSensor[]
-    private obstacles: CObstacleView[]
+    private staticObjects: PIXI.Container[]
     private nextSensorToProcess: number;
     private numberOfClicks: number;
     private activationTimepoint: number;
