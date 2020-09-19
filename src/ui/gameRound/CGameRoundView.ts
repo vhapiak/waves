@@ -8,6 +8,8 @@ import { ELevelProgress } from "../../levels/ELevelProgress";
 import { CTimerView } from "./CTimerView";
 import { makeSensor } from "./sensors/SensorsFactory";
 import { CBaseRadialSensor } from "./sensors/CBaseRadialSensor";
+import { CToolsSelectionView } from "./CToolsSelectionView";
+import { EToolType } from "../../levels/EToolType";
 
 export class CGameRoundView {
 
@@ -25,12 +27,18 @@ export class CGameRoundView {
         this.timerView = new CTimerView();
         this.timerView.getView().position.set(390, 35);
 
+        this.toolSelectionView = new CToolsSelectionView();
+        this.toolSelectionView.getView().position.set(390, 565);
+
         this.container.addChild(this.wavesView.getView());
         this.container.addChild(this.timerView.getView());
+        this.container.addChild(this.toolSelectionView.getView());
 
         this.container.interactive = true;
         this.container.on('pointerup', function(event: PIXI.InteractionEvent) {
-            this.physics.emitCircleWave(event.data.global.x, event.data.global.y, 6.0, 1.0);
+            const type = this.toolSelectionView.getSelectedTool();
+            const value = (type === EToolType.PositiveWave ? 1.0 : -1.0);
+            this.physics.emitCircleWave(event.data.global.x, event.data.global.y, 6.0, value);
             this.numberOfClicks++;
         }, this);
     }
@@ -58,6 +66,9 @@ export class CGameRoundView {
         }
 
         this.timerView.setExpectedTime(level.iterationsInActiveState);
+
+        this.toolSelectionView.setAvailableTools(level.availableTools);
+        this.toolSelectionView.getView().visible = level.availableTools.length >= 2;
     }
 
     update(): void {
@@ -143,6 +154,7 @@ export class CGameRoundView {
     private readonly container: PIXI.Container;
     private readonly wavesView: CWavesView;
     private readonly timerView: CTimerView;
+    private readonly toolSelectionView: CToolsSelectionView;
 
     private levelInfo: LevelInfo;
     private sensors: CBaseRadialSensor[]

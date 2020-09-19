@@ -1,12 +1,14 @@
 import { LevelsSetInfo } from "./LevelsSetInfo";
 import { ELevelProgress } from "./ELevelProgress";
 import { ESensorType } from "./ESensorType";
+import { EToolType } from "./EToolType";
 
 export const levelSet: LevelsSetInfo = {
     levels: [
         {
             name: "Level 1",
             progress: ELevelProgress.NotPlayed,
+            availableTools: [EToolType.PositiveWave],
             targetNumberOfClicks: 1,
             iterationsInActiveState: 90,
             sensors: [
@@ -23,6 +25,7 @@ export const levelSet: LevelsSetInfo = {
         {
             name: "Level 2",
             progress: ELevelProgress.NotPlayed,
+            availableTools: [EToolType.PositiveWave],
             targetNumberOfClicks: 1,
             iterationsInActiveState: 90,
             sensors: [
@@ -46,6 +49,7 @@ export const levelSet: LevelsSetInfo = {
         {
             name: "Level 3",
             progress: ELevelProgress.NotPlayed,
+            availableTools: [EToolType.PositiveWave],
             targetNumberOfClicks: 1,
             iterationsInActiveState: 60,
             sensors: [
@@ -90,6 +94,7 @@ export const levelSet: LevelsSetInfo = {
         {
             name: "Level 4",
             progress: ELevelProgress.NotPlayed,
+            availableTools: [EToolType.PositiveWave],
             targetNumberOfClicks: 2,
             iterationsInActiveState: 10,
             sensors: [
@@ -120,6 +125,7 @@ export const levelSet: LevelsSetInfo = {
         {
             name: "Level 5",
             progress: ELevelProgress.NotPlayed,
+            availableTools: [EToolType.PositiveWave],
             targetNumberOfClicks: 1,
             iterationsInActiveState: 60,
             sensors: [
