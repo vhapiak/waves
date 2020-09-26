@@ -4,6 +4,7 @@ import { SensorInfo } from "./SensorInfo"
 import { ObstacleInfo } from "./ObstacleInfo";
 import { EToolType } from "./EToolType";
 import { HintInfo } from "./HintInfo";
+import { EmiterInfo } from "./EmiterInfo";
 
 export type LevelInfo = {
     name: string, 
@@ -13,5 +14,6 @@ export type LevelInfo = {
     iterationsInActiveState: number,
     sensors: SensorInfo[],
     obstacles: ObstacleInfo[],
+    emiters: EmiterInfo[],
     hints: HintInfo[],
 };

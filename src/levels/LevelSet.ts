@@ -21,6 +21,7 @@ export const levelSet: LevelsSetInfo = {
                 }
             ],
             obstacles: [],
+            emiters: [],
             hints: [
                 {
                     description: "Click here to emit wave!",
@@ -89,6 +90,7 @@ export const levelSet: LevelsSetInfo = {
                 }
             ],
             obstacles: [],
+            emiters: [],
             hints: [
                 {
                     description: "Activate all sensors to run timer.\nUse as few waves as possible!",
@@ -146,6 +148,7 @@ export const levelSet: LevelsSetInfo = {
                     height: 100
                 }
             ],
+            emiters: [],
             hints: [
                 {
                     description: "Waves will reflect from obstacles",
@@ -193,6 +196,7 @@ export const levelSet: LevelsSetInfo = {
                 }
             ],
             obstacles: [],
+            emiters: [],
             hints: [
                 {
                     description: "Some sensors are less sensitive.\nWave must be more powerfull.",
@@ -240,6 +244,7 @@ export const levelSet: LevelsSetInfo = {
                 }
             ],
             obstacles: [],
+            emiters: [],
             hints: [
                 {
                     description: "This is an inverted sensor.\nWaves deactivate it.",
@@ -300,6 +305,7 @@ export const levelSet: LevelsSetInfo = {
                     height: 200
                 }
             ],
+            emiters: [],
             hints: [],
         },
         {
@@ -359,6 +365,7 @@ export const levelSet: LevelsSetInfo = {
                     height: 200
                 }
             ],
+            emiters: [],
             hints: [],
         },
         {
@@ -405,7 +412,115 @@ export const levelSet: LevelsSetInfo = {
                 }
             ],
             obstacles: [],
+            emiters: [],
             hints: [],
+        },
+        {
+            name: "Level 9",
+            progress: ELevelProgress.NotPlayed,
+            availableTools: [EToolType.PositiveWave],
+            targetNumberOfClicks: 1,
+            iterationsInActiveState: 60,
+            sensors: [
+                {
+                    type: ESensorType.Positive,
+                    x: 600,
+                    y: 150,
+                    radius: 30,
+                    threshold: 0.05
+                },
+                {
+                    type: ESensorType.Positive,
+                    x: 600,
+                    y: 450,
+                    radius: 30,
+                    threshold: 0.05
+                }
+            ],
+            obstacles: [],
+            emiters: [
+                {
+                    x: 300,
+                    y: 300,
+                    radius: 6,
+                    visualRadius: 20,
+                    amlitude: 1.0,
+                    period: 240,
+                    enabled: true,
+                    enableable: false
+                }
+            ],
+            hints: [
+                {
+                    description: "This is a waves emitter.\nIt works with constant frequency.",
+                    x: 350,
+                    y: 360,
+                    align: 'left',
+                    anchor: {
+                        x: 0.0,
+                        y: 0.5
+                    },
+                    pointTo: {
+                        x: 300,
+                        y: 330
+                    }
+                }
+            ],
+        },
+        {
+            name: "Level 10",
+            progress: ELevelProgress.NotPlayed,
+            availableTools: [EToolType.PositiveWave],
+            targetNumberOfClicks: 1,
+            iterationsInActiveState: 420,
+            sensors: [
+                {
+                    type: ESensorType.Positive,
+                    x: 400,
+                    y: 300,
+                    radius: 30,
+                    threshold: 0.01
+                }
+            ],
+            obstacles: [],
+            emiters: [
+                {
+                    x: 600,
+                    y: 300,
+                    radius: 6,
+                    visualRadius: 20,
+                    amlitude: 1.0,
+                    period: 250,
+                    enabled: true,
+                    enableable: false
+                },
+                {
+                    x: 200,
+                    y: 300,
+                    radius: 6,
+                    visualRadius: 20,
+                    amlitude: 1.0,
+                    period: 250,
+                    enabled: false,
+                    enableable: true
+                }
+            ],
+            hints: [
+                {
+                    description: "You can toggle green emitters",
+                    x: 250,
+                    y: 360,
+                    align: 'left',
+                    anchor: {
+                        x: 0.0,
+                        y: 0.5
+                    },
+                    pointTo: {
+                        x: 200,
+                        y: 330
+                    }
+                }
+            ],
         }
     ]
 };

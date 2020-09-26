@@ -11,6 +11,7 @@ import { CBaseRadialSensor } from "./sensors/CBaseRadialSensor";
 import { CToolsSelectionView } from "./CToolsSelectionView";
 import { EToolType } from "../../levels/EToolType";
 import { CHintView } from "./CHintView";
+import { CRadialEmiter } from "./CRadialEmiter";
 
 export class CGameRoundView {
 
@@ -20,6 +21,7 @@ export class CGameRoundView {
 
         this.wavesView = new CWavesView(physics);
         this.sensors = [];
+        this.emiters = [];
         this.staticObjects = [];
         this.nextSensorToProcess = 0;
         this.numberOfClicks = 0;
@@ -49,6 +51,12 @@ export class CGameRoundView {
             this.container.addChild(sensor.getView());
         }
 
+        for (let emiterInfo of level.emiters) {
+            const emiter = new CRadialEmiter(emiterInfo, this.physics);
+            this.emiters.push(emiter);
+            this.container.addChild(emiter.getView());
+        }
+
         for (let obstacleInfo of level.obstacles) {
             this.physics.putRectangleObstacle(
                 obstacleInfo.x,
@@ -74,8 +82,11 @@ export class CGameRoundView {
     }
 
     update(): void {
+        for (let emiter of this.emiters) {
+            emiter.update();
+        }
         this.physics.iterate();
-        
+
         // we are updating one sensor per cycle to increase fps
         if (this.nextSensorToProcess < this.sensors.length) {
             this.sensors[this.nextSensorToProcess].update(this.physics);
@@ -121,11 +132,16 @@ export class CGameRoundView {
             this.container.removeChild(sensor.getView());
         }
 
+        for (let emiter of this.emiters) {
+            this.container.removeChild(emiter.getView());
+        }
+
         for(let object of this.staticObjects) {
             this.container.removeChild(object);
         }
 
         this.sensors = [];
+        this.emiters = [];
         this.staticObjects = [];
         this.nextSensorToProcess = 0;
         this.numberOfClicks = 0;
@@ -167,6 +183,13 @@ export class CGameRoundView {
             }
         }
 
+        for (let emiter of this.emiters) {
+            if (emiter.testHit(x, y)) {
+                emiter.toggle();
+                return;
+            }
+        }
+
         this.physics.emitCircleWave(x, y, 6.0, value);
         this.numberOfClicks++;
     }
@@ -179,6 +202,7 @@ export class CGameRoundView {
 
     private levelInfo: LevelInfo;
     private sensors: CBaseRadialSensor[]
+    private emiters: CRadialEmiter[]
     private staticObjects: PIXI.Container[]
     private nextSensorToProcess: number;
     private numberOfClicks: number;
